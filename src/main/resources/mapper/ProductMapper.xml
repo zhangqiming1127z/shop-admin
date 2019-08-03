@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.shop.dao.IDao">
+    <select id="queryCount" parameterType="com.fh.shop.parameter.ProductCondition" resultType="long">
+        select count(id) from t_shop
+        <include refid="tj"></include>
+    </select>
+    <select id="queryProductData" parameterType="com.fh.shop.parameter.ProductCondition"
+            resultType="com.fh.shop.model.product.Product">
+        select t.*from (select p.id,p.proName,p.price,p.createDate ,brandName
+        "brand.brandName",p.imgurl,concat(y.typeName,'->',y1.typeName,'->',y2.typeName) typeName,ishot,upOrDownOrDelete
+        from t_shop p left join t_brand b on p.bid = b.id
+        left join t_type y on p.gc1=y.id
+        left join t_type y1 on p.gc2=y1.id
+        left join t_type y2 on p.gc3=y2.id
+        <include refid="tj"></include>
+        order by p.id desc
+        )t
+        limit #{start},#{length}
+
+
+    </select>
+
+    <update id="deletePro" parameterType="java.lang.Integer">
+      update  t_shop set upOrDownOrDelete=3 where id=#{id}
+    </update>
+
+    <select id="getById" parameterType="java.lang.Integer" resultType="com.fh.shop.model.product.Product">
+        select s.id,s.proName,s.price,s.createDate,s.bid "brand.id",
+         concat(t.typeName,'->',t2.typeName,'->',t3.typeName) typeName,gc1,gc2,gc3,imgurl,ishot
+         from t_shop s
+         left join t_type t  on s.gc1=t.id
+         left join t_type t2 on s.gc2=t2.id
+         left join t_type t3 on  s.gc3=t3.id
+         where s.id=#{id}
+    </select>
+    <update id="updatePro" parameterType="com.fh.shop.model.product.Product">
+        update t_shop set proName=#{proName},price=#{price},createDate=#{createDate},bid=#{brand.id},ishot=#{ishot},
+        gc1=#{gc1},gc2=#{gc2},gc3=#{gc3},imgurl=#{imgurl}
+         where id=#{id}
+    </update>
+    <insert id="addProduct" parameterType="com.fh.shop.model.product.Product">
+      insert into t_shop (proName,price,createDate,bid,imgurl,gc1,gc2,gc3,sonimg,ishot) values(#{proName},#{price},#{createDate},#{brand.id},#{imgurl},#{gc1},#{gc2},#{gc3},#{sonimg},#{ishot})
+    </insert>
+    <sql id="tj">
+            <where>
+                upOrDownOrDelete!=3
+            <if test="proName != null and proName != ''">
+              and  proName like concat('%',#{proName},'%')
+            </if>
+            <if test="minPrice != null and minPrice !='' and maxPrice != null and maxPrice !=''">
+                and price between #{minPrice} and #{maxPrice}
+            </if>
+            <if test="minDate != null and minDate != '' and maxDate != null and maxDate != ''">
+                and createDate between #{minDate} and #{maxDate}
+            </if>
+            <if test="b !=null and b!=-1">
+                and bid=#{b}
+            </if>
+            <if test="gc1 !=null and gc1!=-1">
+                and gc1=#{gc1}
+            </if>
+            <if test="gc2 !=null and gc2!=-1">
+                and gc2=#{gc2}
+            </if>
+            <if test="gc3 !=null and gc3!=-1">
+                and gc3=#{gc3}
+            </if>
+            <if test="ishot !=null and ishot!= '' ">
+                and ishot = #{ishot}
+            </if>
+            <if test="upOrDownOrDelete !=null and upOrDownOrDelete!=''">
+               and upOrDownOrDelete =#{upOrDownOrDelete}
+            </if>
+            </where>
+    </sql>
+
+    <update id="batchDelete">
+        update t_shop set upOrDownOrDelete=3 where id in
+        <foreach collection="array" item="array" open="(" close=")" separator=",">
+            #{array}
+        </foreach>
+    </update>
+
+    <select id="queryAll" resultType="com.fh.shop.model.product.Product">
+        select p.proName,p.price,p.createDate ,brandName "brand.brandName" from t_shop p left join t_brand b on
+        p.bid = b.id limit 1
+    </select>
+    <select id="excelDownLoad" resultType="com.fh.shop.vo.Pro">
+   select p.proName,p.price,p.createDate,b.brandName from t_shop p left join t_brand b on
+        p.bid = b.id
+    </select>
+
+    <select id="queryProductData1" parameterType="com.fh.shop.parameter.ProductCondition"
+            resultType="com.fh.shop.model.product.Product">
+        select t.*from (select p.id,p.proName,p.price,p.createDate ,brandName
+        "brand.brandName",p.imgurl,concat(y.typeName,'->',y1.typeName,'->',y2.typeName) typeName
+        from t_shop p left join t_brand b on p.bid = b.id
+        left join t_type y on p.gc1=y.id
+        left join t_type y1 on p.gc2=y1.id
+        left join t_type y2 on p.gc3=y2.id
+        <include refid="tj"></include>
+        order by p.id desc
+        )t
+
+    </select>
+    <select id="queryCount1" parameterType="com.fh.shop.parameter.ProductCondition" resultType="long">
+        select count(id) from t_shop
+        <include refid="tj"></include>
+    </select>
+
+    <select id="exportExcel" parameterType="com.fh.shop.parameter.ProductCondition"
+            resultType="com.fh.shop.model.product.Product">
+        select t.* from
+        (select ts.id,ts.proName,tb.brandName "brand.brandName",ts.price,ts.createDate from t_shop ts
+        left join t_brand tb on ts.bid = tb.id
+        <include refid="tj"></include>
+        ) t
+    </select>
+
+    <insert id="addProduct2" parameterType="com.fh.shop.model.product.Product">
+        insert into t_shop (proName,price,createDate,bid,imgurl,ishot) values
+        <foreach collection="list" item="product" separator=",">
+            (#{product.proName} , #{product.price} , #{product.createDate} , #{product.brand.id} , #{product.imgurl},0)
+        </foreach>
+    </insert>
+
+    <select id="queryBrandList" resultType="com.fh.shop.model.brand.Brand">
+        select id,brandName,createTime,imgurl from t_brand
+    </select>
+
+    <update id="upOrDown">
+        update t_shop set upOrDownOrDelete=#{upId} where id=#{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.shop.dao.IUserDao">
+    <select id="queryUserName" parameterType="com.fh.shop.parameter.UserParam" resultType="com.fh.shop.model.user.User">
+            select id,userName,userPassWord,salt,realName,loginTime from t_user where userName=#{userName}
+        </select>
+    <select id="queryCount" resultType="long">
+        select count(id) from t_user
+        <include refid="tiaojianchaxun"></include>
+    </select>
+    <select id="queryUserList" parameterType="com.fh.shop.parameter.UserParam" resultType="com.fh.shop.model.user.User">
+
+        select t.*from
+        (SELECT u.id,u.userName,u.userPassWord,u.realName,u.sex,u.birthday,u.phone,u.mail,u.photo,u.study,u.nation,u.idNumber,
+        u.site,CONCAT(a.name,'->',a2.name,'->',a3.name)areaName
+        FROM t_user u LEFT JOIN t_area a
+        ON u.province=a.id
+        LEFT JOIN t_area a2 ON u.city=a2.id
+        LEFT JOIN t_area a3 ON u.county=a3.id
+        <include refid="tiaojianchaxun"></include>
+        order by u.id
+        )t
+        limit #{start},#{length}
+    </select>
+    <delete id="deleteUser" parameterType="int">
+        delete from t_user where id=#{value}
+    </delete>
+    <insert id="addUser" parameterType="com.fh.shop.model.user.User">
+        insert into t_user(userName,userPassWord,realName,sex,birthday,salt,phone,mail,photo,study,nation,idNumber,
+        site,province,city,county)
+        values(#{userName},#{userPassWord},#{realName},#{sex},#{birthday},#{salt},#{phone},#{mail},#{photo},#{study}
+        ,#{nation},#{idNumber},#{site},#{province},#{city},#{county}
+        )
+    </insert>
+    <select id="findUserById" parameterType="int" resultType="com.fh.shop.model.user.User">
+       SELECT u.id,u.userName,u.userPassWord,u.realName,u.sex,u.birthday,u.phone,u.mail,u.photo,u.study,u.nation,u.idNumber,
+        u.site,CONCAT(a.name,'->',a2.name,'->',a3.name)areaName
+        FROM t_user u LEFT JOIN t_area a
+        ON u.province=a.id
+        LEFT JOIN t_area a2 ON u.city=a2.id
+        LEFT JOIN t_area a3 ON u.county=a3.id
+        where u.id=#{id}
+    </select>
+    <sql id="tiaojianchaxun">
+        <where>
+            <if test="userName !=null and userName!=''">
+                userName like concat('%',#{userName},'%')
+            </if>
+            <if test="minDate!=null and minDate !='' and maxDate!=null and maxDate!=''">
+                and birthday between #{minDate} and #{maxDate}
+            </if>
+            <if test="province!=null and province!=-1">
+                and province=#{province}
+            </if>
+            <if test="city!=null and city!=-1">
+                and city=#{city}
+            </if>
+            <if test="county!=null and county!=-1">
+                and county=#{county}
+            </if>
+            <if test="realName!=null and realName!=''">
+             and  realName like concat('%',#{realName},'%')
+            </if>
+        </where>
+    </sql>
+    <update id="updateUser" parameterType="com.fh.shop.model.user.User">
+        update t_user set userName=#{userName},userPassWord=#{userPassWord},sex=#{sex},
+        realName=#{realName},birthday=#{birthday},mail=#{mail},phone=#{phone},study=#{study},nation=#{nation},
+        idNumber=#{idNumber},site=#{site},province=#{province},city=#{city},county=#{county}
+        where id = #{id}
+    </update>
+    <select id="queryName" parameterType="string" resultType="com.fh.shop.model.user.User">
+        select id,salt,userName,userPassWord,realName,loginTime from t_user where userName=#{userName}
+    </select>
+
+    <update id="updateUserLoginTime">
+        update t_user set loginTime=#{date} where id=#{id}
+    </update>
+
+    <select id="queryArea" resultType="com.fh.shop.model.area.Area" parameterType="int">
+      select id,name,pid from t_area where pid=#{value}
+    </select>
+</mapper>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.shop.dao.gc.IGcDao">
+    <select id="queryCount" parameterType="com.fh.shop.parameter.ProductCondition" resultType="int">
+        select count(id) from t_shop
+        <include refid="tj"></include>
+    </select>
+    <select id="queryDeleteProduct" parameterType="com.fh.shop.parameter.ProductCondition"
+            resultType="com.fh.shop.model.product.Product">
+        select t.*from (select p.id,p.proName,p.price,p.createDate ,brandName
+        "brand.brandName",p.imgurl,concat(y.typeName,'->',y1.typeName,'->',y2.typeName) typeName,ishot,upOrDownOrDelete
+        from t_shop p left join t_brand b on p.bid = b.id
+        left join t_type y on p.gc1=y.id
+        left join t_type y1 on p.gc2=y1.id
+        left join t_type y2 on p.gc3=y2.id
+        <include refid="tj"></include>
+        order by p.id desc
+        )t
+        limit #{start},#{length}
+
+
+    </select>
+    <sql id="tj">
+        <where>
+            upOrDownOrDelete=3
+            <if test="proName != null and proName != ''">
+                and  proName like concat('%',#{proName},'%')
+            </if>
+            <if test="minPrice != null and minPrice !='' and maxPrice != null and maxPrice !=''">
+                and price between #{minPrice} and #{maxPrice}
+            </if>
+            <if test="minDate != null and minDate != '' and maxDate != null and maxDate != ''">
+                and createDate between #{minDate} and #{maxDate}
+            </if>
+            <if test="b !=null and b!=-1">
+                and bid=#{b}
+            </if>
+            <if test="gc1 !=null and gc1!=-1">
+                and gc1=#{gc1}
+            </if>
+            <if test="gc2 !=null and gc2!=-1">
+                and gc2=#{gc2}
+            </if>
+            <if test="gc3 !=null and gc3!=-1">
+                and gc3=#{gc3}
+            </if>
+            <if test="ishot !=null and ishot!= '' ">
+                and ishot = #{ishot}
+            </if>
+        </where>
+    </sql>
+
+    <update id="restore">
+        update t_shop set upOrDownOrDelete=1 where id in
+        <foreach collection="array" item="array" open="(" close=")" separator=",">
+            #{array}
+        </foreach>
+    </update>
+</mapper>

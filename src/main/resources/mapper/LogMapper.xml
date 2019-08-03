@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.shop.dao.ILogDao">
+    <insert id="addLog" parameterType="com.fh.shop.model.log.Log">
+            insert into t_log(user,info,createDate,status,content,context)values(#{user},#{info},#{createDate},#{status},#{content},#{context})
+        </insert>
+    <select id="queryCount" parameterType="com.fh.shop.parameter.LogParam" resultType="long">
+        select count(id) from t_log
+        <include refid="tiaojian"></include>
+    </select>
+    <select id="queryLog" parameterType="com.fh.shop.parameter.LogParam" resultType="com.fh.shop.model.log.Log">
+        select t.* from (select id,user,info,createDate,status,content,context from t_log)t
+        <include refid="tiaojian"></include>
+        limit #{start},#{length}
+    </select>
+    <sql id="tiaojian">
+        <where>
+            <if test="status!=null and status!=''">
+                 status=#{status}
+            </if>
+            <if test="user!=null and user!='' ">
+                and  user like concat('%',#{user},'%')
+            </if>
+
+            <if test="minDate!=null and minDate!='' and maxDate!=null and maxDate!=''">
+                and createDate between #{minDate} and #{maxDate}
+            </if>
+            <if test="content!=null and content!=''">
+                and content like concat('%',#{content},'%')
+            </if>
+        </where>
+    </sql>
+</mapper>

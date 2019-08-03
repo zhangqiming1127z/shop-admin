@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.shop.dao.IProductTypeDao">
+    <select id="queryProductType" resultType="com.fh.shop.model.productType.ProductType">
+        select id,typeName,pid from t_type
+    </select>
+
+    <insert id="addType" parameterType="com.fh.shop.model.productType.ProductType">
+        <selectKey keyProperty="id" order="AFTER" resultType="int">
+          select last_insert_id()
+        </selectKey>
+        insert into t_type(typeName,pid)values(#{typeName},#{id})
+    </insert>
+
+    <delete id="deleteZtree" parameterType="int">
+        delete from t_type where id=#{value}
+    </delete>
+
+    <update id="updateType">
+        update t_type set typeName=#{typeName} where id=#{id}
+    </update>
+
+    <select id="queryFirstType" resultType="com.fh.shop.model.productType.ProductType">
+        select id,typeName,pid from t_type where pid=#{value}
+    </select>
+    <!--<select id="queryTwoType" parameterType="int" resultType="com.fh.shop.model.productType.ProductType">
+        select id,pid,typeName from t_type where pid=#{id}
+    </select>
+    <select id="queryThreeType" parameterType="int" resultType="com.fh.shop.model.productType.ProductType">
+        select id,pid,typeName from t_type where pid=#{id}
+    </select>-->
+
+
+</mapper>

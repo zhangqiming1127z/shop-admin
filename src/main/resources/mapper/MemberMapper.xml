@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fh.shop.dao.member.IMemberMapper">
+        <select id="queryCount" parameterType="com.fh.shop.parameter.MemberParam" resultType="long">
+            select count(id) from tq_user
+        </select>
+
+        <select id="queryList" resultType="com.fh.shop.model.member.Member" parameterType="com.fh.shop.parameter.MemberParam">
+          select t.* from (SELECT tu.id,tu.userName,tu.realName,tu.birthday,tu.phoneNumber,tu.mail,tu.isforbidden, CONCAT(ta.name,'->',ta2.name,'->',ta3.name)aname FROM tq_user  tu LEFT JOIN t_area ta ON tu.dq1=ta.id
+           LEFT JOIN t_area ta2 ON tu.dq2=ta2.id
+           LEFT JOIN t_area ta3 ON tu.dq3=ta3.id
+           <include refid="tj"></include>
+           )t
+           limit #{start},#{length}
+        </select>
+
+    <update id="updateisforbidden">
+        update tq_user set isforbidden=#{fid} where id=#{id}
+    </update>
+    <select id="findAreaById" parameterType="int" resultType="com.fh.shop.model.area.Area">
+        select id,name,pId from t_area where pId=#{value}
+    </select>
+    <sql id="tj">
+        <where>
+            <if test="userName!=null and userName!=''">
+                userName like concat('%',#{userName},'%')
+            </if>
+            <if test="minbirthday !=null and maxbirthday!=null">
+                and birthday between #{minbirthday} and #{maxbirthday}
+            </if>
+            <if test="isforbidden!=null and isforbidden!=''">
+                and isforbidden=#{isforbidden}
+            </if>
+            <if test="dq1!=null">
+               and dq1=#{dq1}
+            </if>
+            <if test="dq2!=null">
+                and dq2=#{dq2}
+            </if>
+            <if test="dq3!=null">
+                and dq3=#{dq3}
+            </if>
+        </where>
+    </sql>
+</mapper>
